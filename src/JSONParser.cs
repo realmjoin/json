@@ -30,14 +30,16 @@ namespace TinyJson
         [ThreadStatic] static StringBuilder stringBuilder;
         [ThreadStatic] static Dictionary<Type, Dictionary<string, FieldInfo>> fieldInfoCache;
         [ThreadStatic] static Dictionary<Type, Dictionary<string, PropertyInfo>> propertyInfoCache;
+        [ThreadStatic] static bool enumIgnoreCase;
 
-        public static T FromJson<T>(this string json)
+        public static T FromJson<T>(this string json, bool enumIgnoreCase = false)
         {
             // Initialize, if needed, the ThreadStatic variables
             if (propertyInfoCache == null) propertyInfoCache = new Dictionary<Type, Dictionary<string, PropertyInfo>>();
             if (fieldInfoCache == null) fieldInfoCache = new Dictionary<Type, Dictionary<string, FieldInfo>>();
             if (stringBuilder == null) stringBuilder = new StringBuilder();
             if (splitArrayPool == null) splitArrayPool = new Stack<List<string>>();
+            JSONParser.enumIgnoreCase = enumIgnoreCase;
 
             //Remove all whitespace not within strings to make parsing simpler
             stringBuilder.Length = 0;
@@ -179,7 +181,7 @@ namespace TinyJson
                     json = json.Substring(1, json.Length - 2);
                 try
                 {
-                    return Enum.Parse(type, json, false);
+                    return Enum.Parse(type, json, ignoreCase: enumIgnoreCase);
                 }
                 catch
                 {
