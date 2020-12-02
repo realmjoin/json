@@ -91,21 +91,6 @@ namespace TinyJson
                 stringBuilder.Append(item.ToString());
                 stringBuilder.Append('"');
             }
-            else if (item is IList)
-            {
-                stringBuilder.Append('[');
-                bool isFirst = true;
-                IList list = item as IList;
-                for (int i = 0; i < list.Count; i++)
-                {
-                    if (isFirst)
-                        isFirst = false;
-                    else
-                        stringBuilder.Append(',');
-                    AppendValue(stringBuilder, list[i]);
-                }
-                stringBuilder.Append(']');
-            }
             else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
             {
                 Type keyType = type.GetGenericArguments()[0];
@@ -132,6 +117,20 @@ namespace TinyJson
                     AppendValue(stringBuilder, dict[key]);
                 }
                 stringBuilder.Append('}');
+            }
+            else if (item is IEnumerable)
+            {
+                stringBuilder.Append('[');
+                bool isFirst = true;
+                foreach (var enumItem in item as IEnumerable)
+                {
+                    if (isFirst)
+                        isFirst = false;
+                    else
+                        stringBuilder.Append(',');
+                    AppendValue(stringBuilder, enumItem);
+                }
+                stringBuilder.Append(']');
             }
             else
             {
