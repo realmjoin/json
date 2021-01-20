@@ -89,6 +89,12 @@ namespace TinyJson
                 stringBuilder.Append(((DateTime)item).ToString("o"));
                 stringBuilder.Append('"');
             }
+            else if (type == typeof(TimeSpan))
+            {
+                stringBuilder.Append('"');
+                stringBuilder.Append(((TimeSpan)item).ToString("c"));
+                stringBuilder.Append('"');
+            }
             else if (type.IsEnum)
             {
                 stringBuilder.Append('"');
