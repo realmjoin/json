@@ -335,7 +335,8 @@ namespace TinyJson
 
         static object ParseObject(Type type, string json)
         {
-            object instance = FormatterServices.GetUninitializedObject(type);
+            // do not use FormatterServices.GetUninitializedObject to abide defaults
+            object instance = Activator.CreateInstance(type);
 
             //The list is split into key/value pairs only, this means the split must be divisible by 2 to be valid JSON
             List<string> elems = Split(json);
