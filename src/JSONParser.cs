@@ -129,6 +129,9 @@ namespace TinyJson
 
         internal static object ParseValue(Type type, string json)
         {
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                type = type.GenericTypeArguments[0];
+
             if (type == typeof(string))
             {
                 if (json.Length <= 2)
