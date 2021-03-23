@@ -109,21 +109,18 @@ namespace TinyJson
             {
                 IDictionary dict = item as IDictionary ?? (item as IEnumerable).Cast<DictionaryEntry>().ToDictionary(x => x.Key, x => x.Value);
                 stringBuilder.Append('{');
+                bool isFirst = true;
                 //Refuse to output dictionary keys that aren't of type string
-                if ((type.IsGenericType && type.GetGenericArguments()[0] == typeof(string)) || dict.Keys.Cast<object>().All(x => x.GetType() == typeof(string)))
+                foreach (object key in dict.Keys.Cast<object>().Where(x => x.GetType() == typeof(string)))
                 {
-                    bool isFirst = true;
-                    foreach (object key in dict.Keys)
-                    {
-                        if (isFirst)
-                            isFirst = false;
-                        else
-                            stringBuilder.Append(',');
-                        stringBuilder.Append('\"');
-                        stringBuilder.Append(key.ToString());
-                        stringBuilder.Append("\":");
-                        AppendValue(stringBuilder, dict[key]);
-                    }
+                    if (isFirst)
+                        isFirst = false;
+                    else
+                        stringBuilder.Append(',');
+                    stringBuilder.Append('\"');
+                    stringBuilder.Append(key.ToString());
+                    stringBuilder.Append("\":");
+                    AppendValue(stringBuilder, dict[key]);
                 }
                 stringBuilder.Append('}');
             }
