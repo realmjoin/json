@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
@@ -69,7 +69,7 @@ namespace TinyJson
             else if (type == typeof(IntPtr) || type == typeof(UIntPtr))
             {
                 stringBuilder.Append(item.ToString());
-                stringBuilder.AppendFormat(" /* 0x{0} */", type == typeof(IntPtr) ? ((IntPtr)item).ToInt64().ToString("X8"): ((UIntPtr)item).ToUInt64().ToString("X8"));
+                stringBuilder.AppendFormat(" /* 0x{0} */", type == typeof(IntPtr) ? ((IntPtr)item).ToInt64().ToString("X8") : ((UIntPtr)item).ToUInt64().ToString("X8"));
             }
             else if (type == typeof(float))
             {
@@ -105,30 +105,25 @@ namespace TinyJson
                 stringBuilder.Append(item.ToString());
                 stringBuilder.Append('"');
             }
-            else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+            else if (item is IDictionary || (item is IEnumerable && type.GetGenericArguments().FirstOrDefault() == typeof(DictionaryEntry)))
             {
-                Type keyType = type.GetGenericArguments()[0];
-
-                //Refuse to output dictionary keys that aren't of type string
-                if (keyType != typeof(string))
-                {
-                    stringBuilder.Append("{}");
-                    return;
-                }
-
+                IDictionary dict = item as IDictionary ?? (item as IEnumerable).Cast<DictionaryEntry>().ToDictionary(x => x.Key, x => x.Value);
                 stringBuilder.Append('{');
-                IDictionary dict = item as IDictionary;
-                bool isFirst = true;
-                foreach (object key in dict.Keys)
+                //Refuse to output dictionary keys that aren't of type string
+                if ((type.IsGenericType && type.GetGenericArguments()[0] == typeof(string)) || dict.Keys.Cast<object>().All(x => x.GetType() == typeof(string)))
                 {
-                    if (isFirst)
-                        isFirst = false;
-                    else
-                        stringBuilder.Append(',');
-                    stringBuilder.Append('\"');
-                    stringBuilder.Append((string)key);
-                    stringBuilder.Append("\":");
-                    AppendValue(stringBuilder, dict[key]);
+                    bool isFirst = true;
+                    foreach (object key in dict.Keys)
+                    {
+                        if (isFirst)
+                            isFirst = false;
+                        else
+                            stringBuilder.Append(',');
+                        stringBuilder.Append('\"');
+                        stringBuilder.Append(key.ToString());
+                        stringBuilder.Append("\":");
+                        AppendValue(stringBuilder, dict[key]);
+                    }
                 }
                 stringBuilder.Append('}');
             }
