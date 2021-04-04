@@ -14,10 +14,12 @@ namespace TinyJson
     public static class JSONWriter
     {
         [ThreadStatic] static bool outputNullObjectProperties;
+        [ThreadStatic] static bool appendComments;
 
-        public static string ToJson(this object item, bool outputNullObjectProperties = false)
+        public static string ToJson(this object item, bool outputNullObjectProperties = false, bool appendComments = true)
         {
             JSONWriter.outputNullObjectProperties = outputNullObjectProperties;
+            JSONWriter.appendComments = appendComments;
             StringBuilder stringBuilder = new StringBuilder();
             AppendValue(stringBuilder, item);
             return stringBuilder.ToString();
@@ -69,7 +71,8 @@ namespace TinyJson
             else if (type == typeof(IntPtr) || type == typeof(UIntPtr))
             {
                 stringBuilder.Append(item.ToString());
-                stringBuilder.AppendFormat(" /* 0x{0} */", type == typeof(IntPtr) ? ((IntPtr)item).ToInt64().ToString("X8") : ((UIntPtr)item).ToUInt64().ToString("X8"));
+                if (appendComments)
+                    stringBuilder.AppendFormat(" /* 0x{0} */", type == typeof(IntPtr) ? ((IntPtr)item).ToInt64().ToString("X8") : ((UIntPtr)item).ToUInt64().ToString("X8"));
             }
             else if (type == typeof(float))
             {
@@ -104,6 +107,11 @@ namespace TinyJson
                 stringBuilder.Append('"');
                 stringBuilder.Append(item.ToString());
                 stringBuilder.Append('"');
+                if (appendComments)
+                {
+                    var enumAsUnderlyingType = Convert.ChangeType(item, Enum.GetUnderlyingType(type));
+                    stringBuilder.AppendFormat(" /* 0x{0:X8} / {0} */", enumAsUnderlyingType);
+                }
             }
             else if (item is IDictionary || (item is IEnumerable && type.GetGenericArguments().FirstOrDefault() == typeof(DictionaryEntry)))
             {
