@@ -174,6 +174,14 @@ namespace TinyJson
                 decimal.TryParse(json, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out result);
                 return result;
             }
+            if (type == typeof(TimeSpan))
+            {
+                if (json[0] == '"')
+                    json = json.Substring(1, json.Length - 2);
+                TimeSpan result;
+                TimeSpan.TryParse(json, System.Globalization.CultureInfo.InvariantCulture, out result);
+                return result;
+            }
             if (json == "null")
             {
                 return null;
